@@ -8,7 +8,7 @@ export default function DayList(props) {
                 key={interviewer.id}
                 name={interviewer.name}
                 avatar={interviewer.avatar}
-                setInterviewer={props.setInterviewer}
+                setInterviewer={(event) => props.setInterviewer(interviewer.id)}
                 selected={interviewer.id === props.interviewer}
             />
         );
