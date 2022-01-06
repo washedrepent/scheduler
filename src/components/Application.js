@@ -50,7 +50,7 @@ const appointments = [
         },
     },
     {
-        id: 5,
+        id: 6,
         time: "5pm",
     },
 ];
@@ -61,7 +61,6 @@ export default function Application(props) {
 
     useEffect(() => {
         axios
-
             .get("http://localhost:8001/api/days")
             .then((response) => {
                 setDays(response.data);
