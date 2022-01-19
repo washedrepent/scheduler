@@ -25,14 +25,21 @@ export default function Appointment(props) {
     );
 
     const save = function (name, interviewer) {
+        let edit = false;
         const newInterview = {
             student: name,
             interviewer,
         };
+
+        //check if we are in edit mode
+        if (mode === EDIT) {
+            edit = true;
+        }
+
         transition(SAVING);
 
         props
-            .bookInterview(props.id, newInterview)
+            .bookInterview(props.id, newInterview, edit)
             .then((res) => {
                 transition(SHOW);
             })

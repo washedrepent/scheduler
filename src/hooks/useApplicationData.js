@@ -24,7 +24,21 @@ export default function useApplicationData() {
     }, []);
     const setDay = (day) => setState({ ...state, day: day });
 
-    const bookInterview = function (id, interview) {
+    const updateSpots = (type) => {
+        const day = state.days.find((day) => day.name === state.day);
+
+        console.log(day);
+
+        if (type === "add") {
+            day.spots += 1;
+        }
+
+        if (type === "remove") {
+            day.spots -= 1;
+        }
+    };
+
+    const bookInterview = function (id, interview, edit) {
         const appointment = {
             ...state.appointments[id],
             interview: { ...interview },
@@ -38,9 +52,15 @@ export default function useApplicationData() {
         return axios
             .put(`/api/appointments/${id}`, { interview })
             .then((res) => {
+                //only update spots if the appointment is not being edited
+                if (edit === false) {
+                    updateSpots("remove");
+                }
+                const days = [...state.days];
                 setState({
                     ...state,
                     appointments,
+                    days,
                 });
             });
     };
@@ -57,9 +77,13 @@ export default function useApplicationData() {
         };
 
         return axios.delete(`/api/appointments/${id}`).then((res) => {
+            updateSpots("add");
+            const days = [...state.days];
+
             setState({
                 ...state,
                 appointments,
+                days,
             });
         });
     };
