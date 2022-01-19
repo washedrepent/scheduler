@@ -7,6 +7,8 @@ const SET_INTERVIEW = "SET_INTERVIEW";
 const SET_SPOTS = "SET_SPOTS";
 
 function reducer(state, action) {
+    let days = [];
+
     switch (action.type) {
         case SET_DAY:
             return {
@@ -31,27 +33,32 @@ function reducer(state, action) {
                 interview: action.value.interview,
             };
 
-            const days = [...state.days];
+            days = [...state.days];
+
             return {
                 ...state,
                 appointments,
                 days,
             };
         case SET_SPOTS:
-            const spots = {
-                ...state.spots,
-            };
             const day = state.days.find((day) => day.name === state.day);
 
+            //update value of spots
             if (action.value.type === "add") {
                 day.spots += 1;
             } else if (action.value.type === "remove") {
                 day.spots -= 1;
             }
 
+            //set days array to current days state
+            days = [...state.days];
+
+            //update days array with new day spots data
+            days[days.indexOf(day)] = day;
+
+            //update the state
             return {
                 ...state,
-                spots,
                 days,
             };
         default:
@@ -88,34 +95,25 @@ export default function useApplicationData() {
 
     const setDay = (day) => dispatch({ type: SET_DAY, value: day });
 
-    // const updateSpots = (type) => {
-    //     const day = state.days.find((day) => day.name === state.day);
-
-    //     console.log(day);
-
-    //     if (type === "add") {
-    //         day.spots += 1;
-    //     }
-
-    //     if (type === "remove") {
-    //         day.spots -= 1;
-    //     }
-    // };
-
     const bookInterview = function (id, interview, edit) {
         return axios
             .put(`/api/appointments/${id}`, { interview })
             .then((res) => {
                 //only update spots if the appointment is not being edited
                 if (edit === false) {
-                    //updateSpots("remove");
+                    dispatch({
+                        type: SET_SPOTS,
+                        value: {
+                            type: "remove",
+                        },
+                    });
                 }
 
                 dispatch({
                     type: SET_INTERVIEW,
                     value: {
                         id,
-                        interview: null,
+                        interview,
                     },
                 });
             });
@@ -123,7 +121,12 @@ export default function useApplicationData() {
 
     const cancelInterview = function (id) {
         return axios.delete(`/api/appointments/${id}`).then((res) => {
-            //updateSpots("add");
+            dispatch({
+                type: SET_SPOTS,
+                value: {
+                    type: "add",
+                },
+            });
 
             dispatch({
                 type: SET_INTERVIEW,
