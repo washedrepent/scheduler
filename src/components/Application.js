@@ -21,7 +21,6 @@ export default function Application(props) {
     const appointments = getAppointmentsForDay(state, state.day).map(
         (appointment) => {
             const interview = getInterview(state, appointment.interview);
-            console.log("interview = ", interview);
             return (
                 <Appointment
                     key={appointment.id}
@@ -58,7 +57,10 @@ export default function Application(props) {
                     alt='Lighthouse Labs'
                 />
             </section>
-            <section className='schedule'>{appointments}</section>
+            <section className='schedule'>
+                {appointments}
+                <Appointment key='last' time='5pm' />
+            </section>
         </main>
     );
 }
