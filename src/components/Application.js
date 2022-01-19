@@ -1,21 +1,23 @@
 import React from "react";
-import DayList from "./DayList";
-
 import "components/Application.scss";
+
+import DayList from "./DayList";
 import Appointment from "./Appointment";
+
+import useApplicationData from "../hooks/useApplicationData";
+
 import {
     getAppointmentsForDay,
     getInterview,
     getInterviewersForDay,
 } from "../helpers/selectors";
 
-import useApplicationData from "../hooks/useApplicationData";
-
 export default function Application(props) {
     const { state, setDay, bookInterview, cancelInterview } =
         useApplicationData();
 
-    const schedule = getAppointmentsForDay(state, state.day).map(
+    const interviewers = getInterviewersForDay(state, state.day);
+    const appointments = getAppointmentsForDay(state, state.day).map(
         (appointment) => {
             const interview = getInterview(state, appointment.interview);
 
@@ -25,7 +27,7 @@ export default function Application(props) {
                     id={appointment.id}
                     time={appointment.time}
                     interview={interview}
-                    interviewers={getInterviewersForDay(state, state.day)}
+                    interviewers={interviewers}
                     bookInterview={bookInterview}
                     cancelInterview={cancelInterview}
                 />
@@ -55,7 +57,7 @@ export default function Application(props) {
                     alt='Lighthouse Labs'
                 />
             </section>
-            <section className='schedule'>{schedule}</section>
+            <section className='schedule'>{appointments}</section>
         </main>
     );
 }
