@@ -74,9 +74,50 @@ export default function useApplicationData() {
         days: [],
         appointments: {},
         interviewers: {},
+        edit: {},
     });
 
     useEffect(() => {
+        const ws = new WebSocket(process.env.REACT_APP_WEBSOCKET_URL);
+
+        ws.onopen = (event) => {
+            console.log("connected to websocket");
+            ws.send("ping");
+        };
+
+        ws.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            console.log("Message Received:", data);
+
+            //check if data type is SET_INTERVIEW
+            if (data.type === "SET_INTERVIEW") {
+                //update the spots
+                if (data.interview === null) {
+                    dispatch({
+                        type: SET_SPOTS,
+                        value: {
+                            type: "add",
+                        },
+                    });
+                } else {
+                    dispatch({
+                        type: SET_SPOTS,
+                        value: {
+                            type: "remove",
+                        },
+                    });
+                }
+
+                dispatch({
+                    type: SET_INTERVIEW,
+                    value: {
+                        id: data.id,
+                        interview: data.interview,
+                    },
+                });
+            }
+        };
+
         Promise.all([
             axios.get("/api/days"),
             axios.get("/api/appointments"),
@@ -91,6 +132,8 @@ export default function useApplicationData() {
                 },
             });
         });
+
+        return () => ws.close();
     }, []);
 
     const setDay = (day) => dispatch({ type: SET_DAY, value: day });
@@ -101,12 +144,12 @@ export default function useApplicationData() {
             .then((res) => {
                 //only update spots if the appointment is not being edited
                 if (edit === false) {
-                    dispatch({
-                        type: SET_SPOTS,
-                        value: {
-                            type: "remove",
-                        },
-                    });
+                    // dispatch({
+                    //     type: SET_SPOTS,
+                    //     value: {
+                    //         type: "remove",
+                    //     },
+                    // });
                 }
 
                 dispatch({
@@ -121,12 +164,12 @@ export default function useApplicationData() {
 
     const cancelInterview = function (id) {
         return axios.delete(`/api/appointments/${id}`).then((res) => {
-            dispatch({
-                type: SET_SPOTS,
-                value: {
-                    type: "add",
-                },
-            });
+            // dispatch({
+            //     type: SET_SPOTS,
+            //     value: {
+            //         type: "add",
+            //     },
+            // });
 
             dispatch({
                 type: SET_INTERVIEW,
