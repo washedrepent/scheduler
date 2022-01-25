@@ -4,7 +4,6 @@ import axios from "axios";
 const SET_DAY = "SET_DAY";
 const SET_APPLICATION_DATA = "SET_APPLICATION_DATA";
 const SET_INTERVIEW = "SET_INTERVIEW";
-const SET_SPOTS = "SET_SPOTS";
 
 function reducer(state, action) {
     let days = [];
@@ -33,32 +32,28 @@ function reducer(state, action) {
                 interview: action.value.interview,
             };
 
+            //get the days array
             days = [...state.days];
+
+            //go through each day
+            days.forEach((day) => {
+                //map list of days appointments to appointments array
+                const daysAppointments = day.appointments.map(
+                    (id) => appointments[id]
+                );
+
+                //count the number of appointments interviews spots remaining (null spots remaining)
+                const spots = daysAppointments.filter(
+                    (appointment) => appointment.interview == null
+                ).length;
+
+                //set the day's spots
+                day.spots = spots;
+            });
 
             return {
                 ...state,
                 appointments,
-                days,
-            };
-        case SET_SPOTS:
-            const day = state.days.find((day) => day.name === state.day);
-
-            //update value of spots
-            if (action.value.type === "add") {
-                day.spots += 1;
-            } else if (action.value.type === "remove") {
-                day.spots -= 1;
-            }
-
-            //set days array to current days state
-            days = [...state.days];
-
-            //update days array with new day spots data
-            days[days.indexOf(day)] = day;
-
-            //update the state
-            return {
-                ...state,
                 days,
             };
         default:
@@ -80,10 +75,7 @@ export default function useApplicationData() {
     useEffect(() => {
         const ws = new WebSocket(process.env.REACT_APP_WEBSOCKET_URL);
 
-        ws.onopen = (event) => {
-            console.log("connected to websocket");
-            ws.send("ping");
-        };
+        ws.onopen = (event) => {};
 
         ws.onmessage = (event) => {
             const data = JSON.parse(event.data);
@@ -91,23 +83,6 @@ export default function useApplicationData() {
 
             //check if data type is SET_INTERVIEW
             if (data.type === "SET_INTERVIEW") {
-                //update the spots
-                if (data.interview === null) {
-                    dispatch({
-                        type: SET_SPOTS,
-                        value: {
-                            type: "add",
-                        },
-                    });
-                } else {
-                    dispatch({
-                        type: SET_SPOTS,
-                        value: {
-                            type: "remove",
-                        },
-                    });
-                }
-
                 dispatch({
                     type: SET_INTERVIEW,
                     value: {
@@ -138,48 +113,32 @@ export default function useApplicationData() {
 
     const setDay = (day) => dispatch({ type: SET_DAY, value: day });
 
-    const bookInterview = function (id, interview, edit) {
-        return axios
-            .put(`/api/appointments/${id}`, { interview })
-            .then((res) => {
-                //only update spots if the appointment is not being edited
-                if (edit === false) {
-                    // dispatch({
-                    //     type: SET_SPOTS,
-                    //     value: {
-                    //         type: "remove",
-                    //     },
-                    // });
-                }
+    async function bookInterview(id, interview) {
+        const res = await axios.put(`/api/appointments/${id}`, { interview });
 
-                dispatch({
-                    type: SET_INTERVIEW,
-                    value: {
-                        id,
-                        interview,
-                    },
-                });
-            });
-    };
-
-    const cancelInterview = function (id) {
-        return axios.delete(`/api/appointments/${id}`).then((res) => {
-            // dispatch({
-            //     type: SET_SPOTS,
-            //     value: {
-            //         type: "add",
-            //     },
-            // });
-
-            dispatch({
-                type: SET_INTERVIEW,
-                value: {
-                    id,
-                    interview: null,
-                },
-            });
+        dispatch({
+            type: SET_INTERVIEW,
+            value: {
+                id,
+                interview,
+            },
         });
-    };
+
+        return res;
+    }
+
+    async function cancelInterview(id) {
+        const res = await axios.delete(`/api/appointments/${id}`);
+        dispatch({
+            type: SET_INTERVIEW,
+            value: {
+                id,
+                interview: null,
+            },
+        });
+
+        return res;
+    }
 
     return { state, setDay, bookInterview, cancelInterview };
 }

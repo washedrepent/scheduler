@@ -3,15 +3,15 @@ const fixtures = {
         {
             id: 1,
             name: "Monday",
-            appointments: [1, 2],
-            interviewers: [1, 2],
+            appointments: [1, 2, 3, 4],
+            interviewers: [1, 2, 3, 4],
             spots: 1,
         },
         {
             id: 2,
             name: "Tuesday",
-            appointments: [3, 4],
-            interviewers: [3, 4],
+            appointments: [1, 2, 3, 4],
+            interviewers: [1, 2, 3, 4],
             spots: 1,
         },
     ],
@@ -27,7 +27,11 @@ const fixtures = {
             time: "2pm",
             interview: { student: "Leopold Silvers", interviewer: 4 },
         },
-        4: { id: 4, time: "3pm", interview: null },
+        4: {
+            id: 4,
+            time: "3pm",
+            interview: { student: "John Snow", interviewer: 1 },
+        },
     },
     interviewers: {
         1: {
@@ -77,6 +81,32 @@ export default {
                 status: 200,
                 statusText: "OK",
                 data: fixtures.interviewers,
+            });
+        }
+    }),
+    put: jest.fn((url) => {
+        if (url === "/api/days") {
+            console.log("days");
+            return Promise.resolve({
+                status: 204,
+                statusText: "No Content",
+            });
+        }
+
+        if (url === "/api/appointments") {
+            console.log("appointments");
+            return Promise.resolve({
+                status: 204,
+                statusText: "No Content",
+            });
+        }
+
+        if (url === "/api/interviewers") {
+            console.log("interviewers");
+
+            return Promise.resolve({
+                status: 204,
+                statusText: "No Content",
             });
         }
     }),
